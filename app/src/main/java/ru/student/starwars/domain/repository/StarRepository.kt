@@ -11,5 +11,5 @@ interface StarRepository {
 
     fun getFavoritePeople(): LiveData<List<Human>>
 
-    suspend fun changeHumanFavorite(human: Human)
+    fun changeHumanFavorite(human: Human)
 }

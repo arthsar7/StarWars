@@ -1,12 +1,11 @@
 package ru.student.starwars.data.repository
 
-import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
@@ -14,35 +13,49 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.student.starwars.data.mapper.StarMapper
-import ru.student.starwars.data.network.ApiFactory
-import ru.student.starwars.data.room.AppDatabase
+import ru.student.starwars.data.network.ApiService
+import ru.student.starwars.data.room.StarDao
+import ru.student.starwars.di.ApplicationScope
 import ru.student.starwars.domain.entity.Human
 import ru.student.starwars.domain.repository.StarRepository
+import ru.student.starwars.extensions.mergeWith
+import javax.inject.Inject
 
-class StarRepositoryImpl(
-    application: Application
+@ApplicationScope
+class StarRepositoryImpl @Inject constructor(
+    private val apiService: ApiService,
+    private val mapper: StarMapper,
+    private val starDao: StarDao
 ) : StarRepository {
-    private val starDao = AppDatabase.getInstance(application).starDao()
-    private val apiService = ApiFactory.apiService
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
-    private val mapper = StarMapper()
     private val _people = mutableListOf<Human>()
     private val people: List<Human>
         get() = _people.toList()
 
+    private val loadPeopleFlow = MutableSharedFlow<List<Human>>()
+
     private val peopleFlow = flow {
         val peopleResponseDto = apiService.getPeople()
-        val currPeople = mapper.mapPeopleResponseToEntities(peopleResponseDto)
-        _people.addAll(currPeople)
+        val currPeople = mapper.mapPeopleResponseToEntities(peopleResponseDto).toMutableList()
+        currPeople.replaceAll {
+            if (starDao.getFavoritePeopleById(it.id) != null) {
+                return@replaceAll it.copy(isFavorite = true)
+            }
+            return@replaceAll it
+        }
+        _people.addAll(currPeople.toList())
         emit(people)
-    }.retry {
-        delay(RETRY_MILLIS_TIMESTAMP)
-        true
-    }.stateIn(
-        scope = coroutineScope,
-        started = SharingStarted.Lazily,
-        initialValue = people
-    )
+    }
+        .mergeWith(loadPeopleFlow)
+        .retry {
+            delay(RETRY_MILLIS_TIMESTAMP)
+            true
+        }
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.Lazily,
+            initialValue = people
+        )
 
     override fun getPeopleById(id: String): StateFlow<Human> {
         return flow {
@@ -53,7 +66,7 @@ class StarRepositoryImpl(
         }.stateIn(
             scope = coroutineScope,
             started = SharingStarted.Lazily,
-            initialValue = Human(isFavorite = false)
+            initialValue = Human()
         )
     }
 
@@ -61,22 +74,32 @@ class StarRepositoryImpl(
         return peopleFlow
     }
 
-    override fun getFavoritePeople(): LiveData<List<Human>> = starDao.getFavoritePeople()
-        .map { mapper.mapListHumanDbModelToEntity(it) }.also {
-            Log.d("repo", it.value.toString())
-        }
+    override fun getFavoritePeople(): LiveData<List<Human>> {
+        return starDao.getFavoritePeople()
+            .map { mapper.mapListHumanDbModelToEntity(it) }
+    }
 
-    override suspend fun changeHumanFavorite(human: Human) {
-        coroutineScope.launch(Dispatchers.IO) {
-            val required = starDao.getFavoritePeopleById(human.id)
-            if (required == null) {
-                starDao.addHumanToFavorites(mapper.mapHumanEntityToDbModel(human).copy(isFavorite = true))
+    override fun changeHumanFavorite(human: Human) {
+        coroutineScope.launch {
+            val requiredDbModel = starDao.getFavoritePeopleById(human.id)
+            if (requiredDbModel == null) {
+                val newDbModel = mapper.mapHumanEntityToDbModel(human).copy(isFavorite = true)
+                starDao.addHumanToFavorites(newDbModel)
+            } else {
+                starDao.deleteHumanFromFavorites(requiredDbModel.id)
             }
-            else {
-                starDao.deleteHumanFromFavorites(mapper.mapHumanEntityToDbModel(human).id)
-            }
+            updatePeopleList(human)
         }
+    }
 
+    private suspend fun updatePeopleList(human: Human) {
+        _people.replaceAll {
+            if (human.id == it.id) {
+                return@replaceAll it.copy(isFavorite = !it.isFavorite)
+            }
+            return@replaceAll it
+        }
+        loadPeopleFlow.emit(people)
     }
 
     companion object {

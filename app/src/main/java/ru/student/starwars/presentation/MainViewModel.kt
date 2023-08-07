@@ -1,29 +1,25 @@
 package ru.student.starwars.presentation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
-import ru.student.starwars.data.repository.StarRepositoryImpl
 import ru.student.starwars.domain.StarScreenState
 import ru.student.starwars.domain.entity.Human
 import ru.student.starwars.domain.usecases.ChangeHumanFavoriteUseCase
 import ru.student.starwars.domain.usecases.GetFavoritePeopleUseCase
 import ru.student.starwars.domain.usecases.GetPeopleByIdUseCase
 import ru.student.starwars.domain.usecases.GetPeopleUseCase
+import javax.inject.Inject
 
-class MainViewModel(
-    application: Application
-) : AndroidViewModel(application) {
-    private val repository = StarRepositoryImpl(application)
-    private val getPeopleByIdUseCase = GetPeopleByIdUseCase(repository)
-    private val getPeopleUseCase = GetPeopleUseCase(repository)
-    private val changeHumanFavoriteUseCaseUseCase = ChangeHumanFavoriteUseCase(repository)
-    private val getFavoritePeopleUseCase = GetFavoritePeopleUseCase(repository)
+@Suppress("USELESS_CAST")
+class MainViewModel @Inject constructor(
+    private val getPeopleByIdUseCase: GetPeopleByIdUseCase,
+    getPeopleUseCase: GetPeopleUseCase,
+    private val changeHumanFavoriteUseCase: ChangeHumanFavoriteUseCase,
+    getFavoritePeopleUseCase: GetFavoritePeopleUseCase
+) : ViewModel() {
     val peopleFlow = getPeopleUseCase()
         .filter { it.isNotEmpty() }
         .map { StarScreenState.People(it) as StarScreenState }
@@ -37,10 +33,9 @@ class MainViewModel(
     }
 
     fun changeHumanFavorite(human: Human) {
-        viewModelScope.launch {
-            changeHumanFavoriteUseCaseUseCase(human)
-        }
+        changeHumanFavoriteUseCase(human)
     }
-    fun getFavoritePeople()  = getFavoritePeopleUseCase()
+
+    val favoritePeople = getFavoritePeopleUseCase()
 
 }

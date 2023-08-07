@@ -14,5 +14,6 @@ data class HumanDbModel(
     val eyeColor: String,
     val imageUrl: String,
     val name: String,
-    val isFavorite: Boolean
+    val isFavorite: Boolean,
+    val starshipsCount: Int
 )

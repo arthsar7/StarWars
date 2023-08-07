@@ -17,39 +17,48 @@ import ru.student.starwars.domain.StarScreenState.Loading
 import ru.student.starwars.domain.StarScreenState.People
 import ru.student.starwars.domain.StarScreenState.ShowHuman
 import ru.student.starwars.domain.entity.Human
-import ru.student.starwars.presentation.adapter.StarAdapter
+import ru.student.starwars.presentation.adapter.PeopleAdapter
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
     private val viewModel by lazy {
-        ViewModelProvider(this)[MainViewModel::class.java]
+        ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
     }
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
-    private lateinit var starAdapter: StarAdapter
+
+    private val component by lazy {
+        (application as StarApplication).component
+    }
+
+    private lateinit var peopleAdapter: PeopleAdapter
     private var peopleList: List<Human>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        component.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSearchView()
         setRecyclerView()
         setItemListener()
         collectPeopleFlow()
-        viewModel.getFavoritePeople().observe(this) {
+        viewModel.favoritePeople.observe(this) {
             Log.d("Main", it.toString())
         }
     }
 
     private fun setItemListener() {
-        starAdapter.onItemClickListener = {
+        peopleAdapter.onItemClickListener = {
             viewModel.changeHumanFavorite(it)
-//            val message = if (!it.isFavorite) "добавлен в избранные!" else "удален из избранных" TODO НЕ РАБОТАЕТ
-//            Toast.makeText(
-//                this@MainActivity,
-//                "Персонаж ${it.name} $message",
-//                Toast.LENGTH_SHORT
-//            ).show()
+            val message = if (!it.isFavorite) "добавлен в избранные!" else "удален из избранных"
+            Toast.makeText(
+                this@MainActivity,
+                "Персонаж ${it.name} $message",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -72,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                 when (it) {
                     is People -> {
                         peopleList = it.people
-                        starAdapter.submitList(it.people)
+                        peopleAdapter.submitList(it.people)
                         binding.progressBar.visibility = View.GONE
                     }
 
@@ -92,7 +101,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun filteredList(newText: String) {
         if (newText.length < 2) {
-            starAdapter.submitList(peopleList)
+            peopleAdapter.submitList(peopleList)
         }
         val initList = mutableListOf<Human>()
         peopleList?.forEach {
@@ -104,20 +113,20 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Не найдено", Toast.LENGTH_SHORT).show()
         }
         else {
-            starAdapter.submitList(initList)
+            peopleAdapter.submitList(initList)
         }
 
     }
 
     private fun setRecyclerView() {
-        starAdapter = StarAdapter()
+        peopleAdapter = PeopleAdapter()
         with(binding.recyclerView) {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = starAdapter
+            adapter = peopleAdapter
             recycledViewPool.setMaxRecycledViews(
                 /* viewType = */ R.layout.search_item,
-                /* max = */ StarAdapter.MAX_VH_POOL_SIZE
+                /* max = */ PeopleAdapter.MAX_VH_POOL_SIZE
             )
         }
     }
