@@ -6,27 +6,27 @@ import dagger.Module
 import dagger.Provides
 import ru.student.starwars.data.network.ApiFactory
 import ru.student.starwars.data.network.ApiService
-import ru.student.starwars.data.repository.PeopleRepositoryImpl
+import ru.student.starwars.data.repository.CharactersRepositoryImpl
 import ru.student.starwars.data.repository.StarshipsRepositoryImpl
-import ru.student.starwars.data.room.dao.PeopleDao
+import ru.student.starwars.data.room.dao.CharactersDao
 import ru.student.starwars.data.room.dao.StarshipsDao
 import ru.student.starwars.data.room.db.AppDatabase
-import ru.student.starwars.domain.repository.PeopleRepository
+import ru.student.starwars.domain.repository.CharactersRepository
 import ru.student.starwars.domain.repository.StarshipsRepository
 
 @Module
 interface DataModule {
 
     @Binds
-    fun bindPeopleRepository(repositoryImpl: PeopleRepositoryImpl): PeopleRepository
+    fun bindCharactersRepository(repositoryImpl: CharactersRepositoryImpl): CharactersRepository
 
     @Binds
     fun bindStarshipsRepository(repositoryImpl: StarshipsRepositoryImpl): StarshipsRepository
 
     companion object {
         @Provides
-        fun providePeopleDao(application: Application): PeopleDao {
-            return AppDatabase.getInstance(application).peopleDao()
+        fun provideCharactersDao(application: Application): CharactersDao {
+            return AppDatabase.getInstance(application).charactersDao()
         }
 
         @Provides

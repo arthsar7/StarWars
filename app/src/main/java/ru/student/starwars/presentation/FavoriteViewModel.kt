@@ -1,5 +1,6 @@
 package ru.student.starwars.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -7,25 +8,26 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import ru.student.starwars.domain.entity.Human
+import ru.student.starwars.domain.entity.Character
 import ru.student.starwars.domain.entity.Starship
-import ru.student.starwars.domain.usecases.ChangeHumanFavoriteUseCase
+import ru.student.starwars.domain.usecases.ChangeCharacterFavoriteUseCase
 import ru.student.starwars.domain.usecases.ChangeStarshipFavoriteUseCase
-import ru.student.starwars.domain.usecases.GetFavoritePeopleUseCase
+import ru.student.starwars.domain.usecases.GetFavoriteCharactersUseCase
 import ru.student.starwars.domain.usecases.GetFavoriteStarshipsUseCase
 import ru.student.starwars.extensions.mergeWith
 import javax.inject.Inject
+
 @Suppress("USELESS_CAST")
 class FavoriteViewModel @Inject constructor(
-    getFavoritePeopleUseCase: GetFavoritePeopleUseCase,
-    private val changeHumanFavoriteUseCase: ChangeHumanFavoriteUseCase,
+    getFavoriteCharactersUseCase: GetFavoriteCharactersUseCase,
+    private val changeCharacterFavoriteUseCase: ChangeCharacterFavoriteUseCase,
     getFavoriteStarshipsUseCase: GetFavoriteStarshipsUseCase,
     private val changeStarshipFavoriteUseCase: ChangeStarshipFavoriteUseCase
 ) : ViewModel() {
 
-    private val favoritePeople = getFavoritePeopleUseCase()
+    private val favoriteCharacters = getFavoriteCharactersUseCase()
         .filter { it.isNotEmpty() }
-        .map { MainScreenState.People(it) as MainScreenState }
+        .map { MainScreenState.Characters(it) as MainScreenState }
         .onStart { emit(MainScreenState.Loading) }
 
     private val favoriteStarships = getFavoriteStarshipsUseCase()
@@ -35,28 +37,28 @@ class FavoriteViewModel @Inject constructor(
 
     private val nextDataEvents = MutableSharedFlow<MainScreenState>()
 
-    val screenStateFlow = favoritePeople.mergeWith(nextDataEvents)
+    val screenStateFlow = favoriteCharacters.mergeWith(favoriteStarships)
+        .mergeWith(nextDataEvents)
 
     fun getFavoriteStarships() {
         viewModelScope.launch {
             favoriteStarships.collect {
-                nextDataEvents.emit(MainScreenState.Starships(listOf()))
                 nextDataEvents.emit(it)
             }
         }
     }
 
-    fun getFavoritePeople() {
+    fun getFavoriteCharacters() {
         viewModelScope.launch {
-            favoritePeople.collect {
-                nextDataEvents.emit(MainScreenState.People(listOf()))
+            favoriteCharacters.collect {
                 nextDataEvents.emit(it)
             }
         }
     }
 
-    fun changeHumanFavorite(human: Human) {
-        changeHumanFavoriteUseCase(human)
+
+    fun changeCharacterFavorite(character: Character) {
+        changeCharacterFavoriteUseCase(character)
     }
 
     fun changeStarshipFavorite(starship: Starship) {

@@ -8,20 +8,20 @@ import com.bumptech.glide.Glide
 import ru.student.starwars.R
 import ru.student.starwars.databinding.SearchItemBinding
 import ru.student.starwars.domain.entity.Gender
-import ru.student.starwars.domain.entity.Human
+import ru.student.starwars.domain.entity.Character
 
-class PeopleAdapter: ListAdapter<Human, PeopleViewHolder>(PeopleItemDiffCallback()) {
-    var onItemClickListener: ((Human) -> Unit)? = null
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PeopleViewHolder {
+class CharacterAdapter: ListAdapter<Character, CharacterViewHolder>(CharacterItemDiffCallback()) {
+    var onItemClickListener: ((Character) -> Unit)? = null
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CharacterViewHolder {
         val binding = SearchItemBinding.inflate(
             /* inflater = */ LayoutInflater.from(parent.context),
             /* parent = */ parent,
             /* attachToParent = */ false
         )
-        return PeopleViewHolder(binding)
+        return CharacterViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: PeopleViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: CharacterViewHolder, position: Int) {
         val item = getItem(position)
         holder.binding.titleTv.text = item.name
         Glide.with(holder.itemView.context).load(item.imageUrl).into(holder.binding.logoIv)

@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
+import android.widget.RadioGroup.OnCheckedChangeListener
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -15,10 +17,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.student.starwars.R
 import ru.student.starwars.databinding.FragmentMainBinding
-import ru.student.starwars.domain.entity.Human
+import ru.student.starwars.domain.entity.Character
 import ru.student.starwars.domain.entity.Searchable
 import ru.student.starwars.domain.entity.Starship
-import ru.student.starwars.presentation.adapter.PeopleAdapter
+import ru.student.starwars.presentation.adapter.CharacterAdapter
 import ru.student.starwars.presentation.adapter.StarshipAdapter
 import javax.inject.Inject
 
@@ -39,7 +41,7 @@ class MainFragment : Fragment() {
         (requireActivity().application as StarApplication).component
     }
 
-    private lateinit var peopleAdapter: PeopleAdapter
+    private lateinit var characterAdapter: CharacterAdapter
     private lateinit var starshipAdapter: StarshipAdapter
 
     private var searchableList: List<Searchable>? = null
@@ -65,21 +67,26 @@ class MainFragment : Fragment() {
         setRecyclerView()
         setItemListener()
         collectScreenFlow()
-
-        binding.tvPeopleTitle.setOnClickListener {
-            binding.recyclerView.adapter = peopleAdapter
-            mainViewModel.getPeople()
+        binding.tvCharactersTitle.setOnCheckedChangeListener {
+                _, isChecked ->
+            if (isChecked) {
+                binding.recyclerView.adapter = characterAdapter
+                mainViewModel.getCharacters()
+            }
         }
 
-        binding.tvStarShipsTitle.setOnClickListener {
-            binding.recyclerView.adapter = starshipAdapter
-            mainViewModel.getStarships()
+        binding.tvStarShipsTitle.setOnCheckedChangeListener {
+                _, isChecked ->
+            if (isChecked) {
+                binding.recyclerView.adapter = starshipAdapter
+                mainViewModel.getStarships()
+            }
         }
     }
 
     private fun setItemListener() {
-        peopleAdapter.onItemClickListener = {
-            mainViewModel.changeHumanFavorite(it)
+        characterAdapter.onItemClickListener = {
+            mainViewModel.changeCharacterFavorite(it)
             val message = if (!it.isFavorite) "добавлен в избранные!" else "удален из избранных"
             Toast.makeText(
                 requireContext(),
@@ -113,12 +120,12 @@ class MainFragment : Fragment() {
 
     private fun collectScreenFlow() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.screenStateFlow.collect {
                     when (it) {
-                        is MainScreenState.People -> {
-                            searchableList = it.people
-                            peopleAdapter.submitList(it.people)
+                        is MainScreenState.Characters -> {
+                            searchableList = it.characters
+                            characterAdapter.submitList(it.characters)
                             binding.progressBar.visibility = View.GONE
                         }
 
@@ -131,8 +138,8 @@ class MainFragment : Fragment() {
 
                         is MainScreenState.Starships -> {
                             binding.progressBar.visibility = View.GONE
-                            searchableList = it.starships
                             starshipAdapter.submitList(it.starships)
+                            searchableList = it.starships
                         }
                     }
                 }
@@ -142,7 +149,7 @@ class MainFragment : Fragment() {
 
     private fun filteredList(newText: String) {
         if (newText.length < 2) {
-            peopleAdapter.submitList(searchableList?.filterIsInstance<Human>())
+            characterAdapter.submitList(searchableList?.filterIsInstance<Character>())
         }
         val initList = mutableListOf<Searchable>()
         searchableList?.forEach {
@@ -153,7 +160,7 @@ class MainFragment : Fragment() {
         if (initList.isEmpty()) {
             Toast.makeText(requireContext(), "Не найдено", Toast.LENGTH_SHORT).show()
         } else {
-            peopleAdapter.submitList(initList.filterIsInstance<Human>())
+            characterAdapter.submitList(initList.filterIsInstance<Character>())
             starshipAdapter.submitList(initList.filterIsInstance<Starship>())
         }
 
@@ -161,15 +168,15 @@ class MainFragment : Fragment() {
 
     private fun setRecyclerView() {
         starshipAdapter = StarshipAdapter()
-        peopleAdapter = PeopleAdapter()
+        characterAdapter = CharacterAdapter()
 
         with(binding.recyclerView) {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = peopleAdapter
+            adapter = characterAdapter
             recycledViewPool.setMaxRecycledViews(
                 /* viewType = */ R.layout.search_item,
-                /* max = */ PeopleAdapter.MAX_VH_POOL_SIZE
+                /* max = */ CharacterAdapter.MAX_VH_POOL_SIZE
             )
         }
     }

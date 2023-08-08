@@ -2,7 +2,7 @@ package ru.student.starwars.data.models
 
 import com.google.gson.annotations.SerializedName
 
-data class HumanDto(
+data class CharacterDto(
     @SerializedName("name")val name: String,
     @SerializedName("height")val height: Int,
     @SerializedName("mass")val mass: Int,

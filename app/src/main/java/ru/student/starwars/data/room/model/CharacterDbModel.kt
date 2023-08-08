@@ -3,8 +3,8 @@ package ru.student.starwars.data.room.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "favorite_people")
-data class HumanDbModel(
+@Entity(tableName = "favorite_characters")
+data class CharacterDbModel(
     @PrimaryKey(autoGenerate = false)
     val id: String,
     val height: Int,

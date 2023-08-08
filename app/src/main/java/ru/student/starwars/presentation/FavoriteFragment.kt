@@ -1,6 +1,7 @@
 package ru.student.starwars.presentation
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.student.starwars.databinding.FragmentFavoriteBinding
-import ru.student.starwars.presentation.adapter.PeopleAdapter
+import ru.student.starwars.presentation.adapter.CharacterAdapter
 import ru.student.starwars.presentation.adapter.StarshipAdapter
 import javax.inject.Inject
 
@@ -20,6 +21,7 @@ class FavoriteFragment : Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding: FragmentFavoriteBinding
         get() = _binding ?: throw IllegalStateException("Binding is null")
+
     private val component by lazy {
         (requireActivity().application as StarApplication).component
     }
@@ -28,15 +30,19 @@ class FavoriteFragment : Fragment() {
     private val viewModel by lazy {
         ViewModelProvider(this, viewModelFactory)[FavoriteViewModel::class.java]
     }
-    private lateinit var favoritePeopleAdapter: PeopleAdapter
+
+    private lateinit var favoriteCharacterAdapter: CharacterAdapter
+
     private lateinit var favoriteStarshipAdapter: StarshipAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         component.inject(this)
         super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFavoriteBinding.inflate(inflater, container, false)
@@ -46,28 +52,46 @@ class FavoriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        binding.tvPeopleTitle.setOnClickListener {
-            binding.recyclerView.adapter = favoritePeopleAdapter
-            viewModel.getFavoritePeople()
+        binding.tvCharactersTitle.setOnCheckedChangeListener {
+                _, isChecked ->
+            if (isChecked) {
+                binding.recyclerView.adapter = favoriteCharacterAdapter
+                viewModel.getFavoriteCharacters()
+            }
         }
-        binding.tvStarShipsTitle.setOnClickListener {
-            binding.recyclerView.adapter = favoriteStarshipAdapter
-            viewModel.getFavoriteStarships()
+        binding.tvStarShipsTitle.setOnCheckedChangeListener {
+                _, isChecked ->
+            if (isChecked) {
+                binding.recyclerView.adapter = favoriteStarshipAdapter
+                viewModel.getFavoriteStarships()
+            }
         }
+        collectFlow()
+
+    }
+
+    private fun collectFlow() {
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.screenStateFlow.collect {
                     when (it) {
+
                         is MainScreenState.Initial -> {
+                            Log.d("FavoriteFragment", "Initial")
                         }
+
                         is MainScreenState.Loading -> {
                             binding.progressBar.visibility = View.VISIBLE
                         }
-                        is MainScreenState.People -> {
+
+                        is MainScreenState.Characters -> {
+                            Log.d("FavoriteFragment", it.toString())
                             binding.progressBar.visibility = View.GONE
-                            favoritePeopleAdapter.submitList(it.people)
+                            favoriteCharacterAdapter.submitList(it.characters)
                         }
+
                         is MainScreenState.Starships -> {
+                            Log.d("FavoriteFragment", it.toString())
                             binding.progressBar.visibility = View.GONE
                             favoriteStarshipAdapter.submitList(it.starships)
                         }
@@ -78,14 +102,15 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        favoritePeopleAdapter = PeopleAdapter()
+        favoriteCharacterAdapter = CharacterAdapter()
         favoriteStarshipAdapter = StarshipAdapter()
+
         with(binding.recyclerView) {
             this.layoutManager = LinearLayoutManager(this@FavoriteFragment.context)
-            adapter = favoritePeopleAdapter
+            adapter = favoriteCharacterAdapter
         }
-        favoritePeopleAdapter.onItemClickListener = {
-            viewModel.changeHumanFavorite(it)
+        favoriteCharacterAdapter.onItemClickListener = {
+            viewModel.changeCharacterFavorite(it)
         }
         favoriteStarshipAdapter.onItemClickListener = {
             viewModel.changeStarshipFavorite(it)

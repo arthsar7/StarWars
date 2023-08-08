@@ -1,6 +1,6 @@
 package ru.student.starwars.domain.entity
 
-data class Human(
+data class Character(
     val id: String = "",
     val name: String = "Name",
     val height: Int = 175,

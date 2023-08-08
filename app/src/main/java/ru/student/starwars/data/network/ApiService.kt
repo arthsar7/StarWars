@@ -2,17 +2,17 @@ package ru.student.starwars.data.network
 
 import retrofit2.http.GET
 import retrofit2.http.Path
-import ru.student.starwars.data.models.HumanDto
-import ru.student.starwars.data.models.PeopleResponseDto
+import ru.student.starwars.data.models.CharacterDto
+import ru.student.starwars.data.models.CharacterResponseDto
 import ru.student.starwars.data.models.StarshipDto
 import ru.student.starwars.data.models.StarshipsResponseDto
 
 interface ApiService {
     @GET("people")
-    suspend fun getPeople(): PeopleResponseDto
+    suspend fun getCharacters(): CharacterResponseDto
 
     @GET("people/{id}")
-    suspend fun getPeopleById(@Path("id") id: String): HumanDto
+    suspend fun getCharactersById(@Path("id") id: String): CharacterDto
 
     @GET("starships")
     suspend fun getStarships(): StarshipsResponseDto

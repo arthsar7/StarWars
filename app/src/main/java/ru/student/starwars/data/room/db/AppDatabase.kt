@@ -4,14 +4,14 @@ import android.app.Application
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import ru.student.starwars.data.room.dao.PeopleDao
+import ru.student.starwars.data.room.dao.CharactersDao
 import ru.student.starwars.data.room.dao.StarshipsDao
-import ru.student.starwars.data.room.model.HumanDbModel
+import ru.student.starwars.data.room.model.CharacterDbModel
 import ru.student.starwars.data.room.model.StarshipDbModel
 
-@Database(entities = [HumanDbModel::class, StarshipDbModel::class], version = 1, exportSchema = false)
+@Database(entities = [CharacterDbModel::class, StarshipDbModel::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun peopleDao(): PeopleDao
+    abstract fun charactersDao(): CharactersDao
     abstract fun starshipsDao(): StarshipsDao
     companion object {
         private var INSTANCE: AppDatabase? = null
