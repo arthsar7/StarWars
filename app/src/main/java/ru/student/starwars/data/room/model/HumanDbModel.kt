@@ -1,4 +1,4 @@
-package ru.student.starwars.data.room
+package ru.student.starwars.data.room.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

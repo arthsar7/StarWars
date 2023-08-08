@@ -2,12 +2,12 @@ package ru.student.starwars.data.mapper
 
 import ru.student.starwars.data.models.HumanDto
 import ru.student.starwars.data.models.PeopleResponseDto
-import ru.student.starwars.data.room.HumanDbModel
+import ru.student.starwars.data.room.model.HumanDbModel
 import ru.student.starwars.domain.entity.Gender
 import ru.student.starwars.domain.entity.Human
 import javax.inject.Inject
 
-class StarMapper @Inject constructor() {
+class PeopleMapper @Inject constructor() {
     fun mapDtoModelToEntity(humanDto: HumanDto): Human {
         return Human(
             id = humanDto.url,
@@ -75,7 +75,7 @@ class StarMapper @Inject constructor() {
         }
 
     fun mapPeopleResponseToEntities(peopleResponseDto: PeopleResponseDto): List<Human> {
-        val peopleDto = peopleResponseDto.results
+        val peopleDto = peopleResponseDto.people
         return peopleDto.map { mapDtoModelToEntity(it) }
     }
 

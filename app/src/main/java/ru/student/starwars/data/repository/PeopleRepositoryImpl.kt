@@ -1,7 +1,6 @@
 package ru.student.starwars.data.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -9,25 +8,26 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import ru.student.starwars.data.mapper.StarMapper
+import ru.student.starwars.data.mapper.PeopleMapper
 import ru.student.starwars.data.network.ApiService
-import ru.student.starwars.data.room.StarDao
+import ru.student.starwars.data.room.dao.PeopleDao
 import ru.student.starwars.di.ApplicationScope
 import ru.student.starwars.domain.entity.Human
-import ru.student.starwars.domain.repository.StarRepository
+import ru.student.starwars.domain.repository.PeopleRepository
 import ru.student.starwars.extensions.mergeWith
 import javax.inject.Inject
 
 @ApplicationScope
-class StarRepositoryImpl @Inject constructor(
+class PeopleRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
-    private val mapper: StarMapper,
-    private val starDao: StarDao
-) : StarRepository {
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val mapper: PeopleMapper,
+    private val peopleDao: PeopleDao
+) : PeopleRepository {
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val _people = mutableListOf<Human>()
     private val people: List<Human>
         get() = _people.toList()
@@ -38,7 +38,9 @@ class StarRepositoryImpl @Inject constructor(
         val peopleResponseDto = apiService.getPeople()
         val currPeople = mapper.mapPeopleResponseToEntities(peopleResponseDto).toMutableList()
         currPeople.replaceAll {
-            if (starDao.getFavoritePeopleById(it.id) != null) {
+            if (peopleDao.getFavoritePeopleById(it.id) != null) {
+                Log.d("NO", "HERE WE")
+
                 return@replaceAll it.copy(isFavorite = true)
             }
             return@replaceAll it
@@ -74,35 +76,37 @@ class StarRepositoryImpl @Inject constructor(
         return peopleFlow
     }
 
-    override fun getFavoritePeople(): LiveData<List<Human>> {
-        return starDao.getFavoritePeople()
+    override fun getFavoritePeople(): StateFlow<List<Human>> {
+        return peopleDao
+            .getFavoritePeople()
             .map { mapper.mapListHumanDbModelToEntity(it) }
+            .stateIn(
+                scope = coroutineScope,
+                started = SharingStarted.Lazily,
+                initialValue = listOf()
+            )
     }
 
     override fun changeHumanFavorite(human: Human) {
         coroutineScope.launch {
-            val requiredDbModel = starDao.getFavoritePeopleById(human.id)
-            if (requiredDbModel == null) {
+            val requiredEntity = _people.find { it.id == human.id }
+            if (requiredEntity?.isFavorite == false) {
                 val newDbModel = mapper.mapHumanEntityToDbModel(human).copy(isFavorite = true)
-                starDao.addHumanToFavorites(newDbModel)
+                peopleDao.addHumanToFavorites(newDbModel)
             } else {
-                starDao.deleteHumanFromFavorites(requiredDbModel.id)
+                requiredEntity?.id?.let { peopleDao.deleteHumanFromFavorites(it) }
             }
-            updatePeopleList(human)
-        }
-    }
-
-    private suspend fun updatePeopleList(human: Human) {
-        _people.replaceAll {
-            if (human.id == it.id) {
-                return@replaceAll it.copy(isFavorite = !it.isFavorite)
+            _people.replaceAll {
+                if (human.id == it.id) {
+                    return@replaceAll it.copy(isFavorite = !it.isFavorite)
+                }
+                return@replaceAll it
             }
-            return@replaceAll it
+            loadPeopleFlow.emit(people)
         }
-        loadPeopleFlow.emit(people)
     }
 
     companion object {
-        private const val RETRY_MILLIS_TIMESTAMP = 3000L
+        private const val RETRY_MILLIS_TIMESTAMP = 1000L
     }
 }

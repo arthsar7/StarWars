@@ -2,7 +2,7 @@ package ru.student.starwars.data.models
 
 import com.google.gson.annotations.SerializedName
 
-data class PeopleResponseDto(
-    @SerializedName("results")val people: List<HumanDto>,
+data class StarshipsResponseDto(
+    @SerializedName("results") val starships: List<StarshipDto>,
     @SerializedName("next") val nextDataUrl: String
 )

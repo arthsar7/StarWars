@@ -1,137 +1,22 @@
 package ru.student.starwars.presentation
 
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import android.widget.SearchView.OnQueryTextListener
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.coroutines.launch
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.NavigationUI
 import ru.student.starwars.R
 import ru.student.starwars.databinding.ActivityMainBinding
-import ru.student.starwars.domain.StarScreenState.Initial
-import ru.student.starwars.domain.StarScreenState.Loading
-import ru.student.starwars.domain.StarScreenState.People
-import ru.student.starwars.domain.StarScreenState.ShowHuman
-import ru.student.starwars.domain.entity.Human
-import ru.student.starwars.presentation.adapter.PeopleAdapter
-import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
-    @Inject
-    lateinit var viewModelFactory: ViewModelFactory
-    private val viewModel by lazy {
-        ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
-    }
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
-
-    private val component by lazy {
-        (application as StarApplication).component
-    }
-
-    private lateinit var peopleAdapter: PeopleAdapter
-    private var peopleList: List<Human>? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        component.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        setSearchView()
-        setRecyclerView()
-        setItemListener()
-        collectPeopleFlow()
-        viewModel.favoritePeople.observe(this) {
-            Log.d("Main", it.toString())
-        }
+        val navController = (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+            .navController
+        NavigationUI.setupWithNavController(binding.navigation, navController)
     }
 
-    private fun setItemListener() {
-        peopleAdapter.onItemClickListener = {
-            viewModel.changeHumanFavorite(it)
-            val message = if (!it.isFavorite) "добавлен в избранные!" else "удален из избранных"
-            Toast.makeText(
-                this@MainActivity,
-                "Персонаж ${it.name} $message",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-    private fun setSearchView() {
-        binding.searchView.setOnQueryTextListener(object : OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                filteredList(newText)
-                return false
-            }
-        })
-    }
-
-    private fun collectPeopleFlow() {
-        lifecycleScope.launch {
-            viewModel.peopleFlow.collect {
-                when (it) {
-                    is People -> {
-                        peopleList = it.people
-                        peopleAdapter.submitList(it.people)
-                        binding.progressBar.visibility = View.GONE
-                    }
-
-                    is Loading -> {
-                        binding.progressBar.visibility = View.VISIBLE
-                    }
-                    is Initial -> {
-                    }
-
-                    is ShowHuman -> {
-
-                    }
-                }
-            }
-        }
-    }
-
-    private fun filteredList(newText: String) {
-        if (newText.length < 2) {
-            peopleAdapter.submitList(peopleList)
-        }
-        val initList = mutableListOf<Human>()
-        peopleList?.forEach {
-            if (it.name.lowercase().contains(newText.lowercase())) {
-                initList.add(it)
-            }
-        }
-        if (initList.isEmpty()) {
-            Toast.makeText(this, "Не найдено", Toast.LENGTH_SHORT).show()
-        }
-        else {
-            peopleAdapter.submitList(initList)
-        }
-
-    }
-
-    private fun setRecyclerView() {
-        peopleAdapter = PeopleAdapter()
-        with(binding.recyclerView) {
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = peopleAdapter
-            recycledViewPool.setMaxRecycledViews(
-                /* viewType = */ R.layout.search_item,
-                /* max = */ PeopleAdapter.MAX_VH_POOL_SIZE
-            )
-        }
-    }
-
-    private fun log(msg: String) {
-        Log.d("MainActivity", msg)
-    }
 }

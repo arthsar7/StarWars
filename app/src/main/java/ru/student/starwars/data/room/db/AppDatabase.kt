@@ -1,13 +1,18 @@
-package ru.student.starwars.data.room
+package ru.student.starwars.data.room.db
 
 import android.app.Application
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-@Database(entities = [HumanDbModel::class], version = 2, exportSchema = false)
+import ru.student.starwars.data.room.dao.PeopleDao
+import ru.student.starwars.data.room.dao.StarshipsDao
+import ru.student.starwars.data.room.model.HumanDbModel
+import ru.student.starwars.data.room.model.StarshipDbModel
+
+@Database(entities = [HumanDbModel::class, StarshipDbModel::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun starDao(): StarDao
+    abstract fun peopleDao(): PeopleDao
+    abstract fun starshipsDao(): StarshipsDao
     companion object {
         private var INSTANCE: AppDatabase? = null
         private val LOCK = Any()

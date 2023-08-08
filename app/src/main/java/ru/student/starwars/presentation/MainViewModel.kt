@@ -1,41 +1,67 @@
 package ru.student.starwars.presentation
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.Flow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import ru.student.starwars.domain.StarScreenState
+import kotlinx.coroutines.launch
 import ru.student.starwars.domain.entity.Human
+import ru.student.starwars.domain.entity.Starship
 import ru.student.starwars.domain.usecases.ChangeHumanFavoriteUseCase
-import ru.student.starwars.domain.usecases.GetFavoritePeopleUseCase
-import ru.student.starwars.domain.usecases.GetPeopleByIdUseCase
+import ru.student.starwars.domain.usecases.ChangeStarshipFavoriteUseCase
 import ru.student.starwars.domain.usecases.GetPeopleUseCase
+import ru.student.starwars.domain.usecases.GetStarshipsUseCase
+import ru.student.starwars.extensions.mergeWith
 import javax.inject.Inject
 
 @Suppress("USELESS_CAST")
 class MainViewModel @Inject constructor(
-    private val getPeopleByIdUseCase: GetPeopleByIdUseCase,
     getPeopleUseCase: GetPeopleUseCase,
     private val changeHumanFavoriteUseCase: ChangeHumanFavoriteUseCase,
-    getFavoritePeopleUseCase: GetFavoritePeopleUseCase
+    getStarshipsUseCase: GetStarshipsUseCase,
+    private val changeStarshipFavoriteUseCase: ChangeStarshipFavoriteUseCase
 ) : ViewModel() {
-    val peopleFlow = getPeopleUseCase()
-        .filter { it.isNotEmpty() }
-        .map { StarScreenState.People(it) as StarScreenState }
-        .onStart { emit(StarScreenState.Loading) }
 
-    fun getPeopleById(id: String): Flow<StarScreenState> {
-        return getPeopleByIdUseCase(id)
-            .filter { it != Human(isFavorite = false) }
-            .map { StarScreenState.ShowHuman(it) as StarScreenState }
-            .onStart { emit(StarScreenState.Loading) }
+    private val peopleFlow = getPeopleUseCase()
+        .filter { it.isNotEmpty() }
+        .map { MainScreenState.People(it) as MainScreenState }
+        .onStart { emit(MainScreenState.Loading) }
+
+    private val starshipsFlow = getStarshipsUseCase()
+        .filter { it.isNotEmpty() }
+        .map { MainScreenState.Starships(it) as MainScreenState }
+        .onStart { emit(MainScreenState.Loading)  }
+
+    private val nextDataEvents = MutableSharedFlow<MainScreenState>()
+
+    val screenStateFlow = peopleFlow.mergeWith(nextDataEvents)
+
+    fun getStarships() {
+        viewModelScope.launch {
+            starshipsFlow.collect {
+                nextDataEvents.emit(MainScreenState.Starships(listOf()))
+                nextDataEvents.emit(it)
+            }
+        }
+    }
+
+    fun getPeople() {
+        viewModelScope.launch {
+            peopleFlow.collect {
+                nextDataEvents.emit(MainScreenState.People(listOf()))
+                nextDataEvents.emit(it)
+            }
+        }
     }
 
     fun changeHumanFavorite(human: Human) {
         changeHumanFavoriteUseCase(human)
     }
 
-    val favoritePeople = getFavoritePeopleUseCase()
+    fun changeStarshipFavorite(starship: Starship) {
+        changeStarshipFavoriteUseCase(starship)
+    }
 
 }

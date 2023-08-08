@@ -10,7 +10,7 @@ import ru.student.starwars.databinding.SearchItemBinding
 import ru.student.starwars.domain.entity.Gender
 import ru.student.starwars.domain.entity.Human
 
-class PeopleAdapter: ListAdapter<Human, PeopleViewHolder>(StarItemDiffCallback()) {
+class PeopleAdapter: ListAdapter<Human, PeopleViewHolder>(PeopleItemDiffCallback()) {
     var onItemClickListener: ((Human) -> Unit)? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PeopleViewHolder {
         val binding = SearchItemBinding.inflate(
@@ -48,6 +48,6 @@ class PeopleAdapter: ListAdapter<Human, PeopleViewHolder>(StarItemDiffCallback()
         )
     }
     companion object {
-        const val MAX_VH_POOL_SIZE = 20
+        const val MAX_VH_POOL_SIZE = 10
     }
 }

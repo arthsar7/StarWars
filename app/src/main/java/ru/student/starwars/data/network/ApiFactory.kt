@@ -11,7 +11,8 @@ object ApiFactory {
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
-        }).build()
+        })
+        .build()
 
     private val retrofit = Retrofit
         .Builder()

@@ -11,4 +11,9 @@ data class Human(
     val imageUrl: String = "",
     val isFavorite: Boolean = false,
     val starshipsCount: Int = 0
-)
+) : Searchable {
+    override fun getSearchableText(): String {
+        return name
+    }
+}
+

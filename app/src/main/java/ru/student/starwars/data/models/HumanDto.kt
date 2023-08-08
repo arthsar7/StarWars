@@ -10,5 +10,5 @@ data class HumanDto(
     @SerializedName("skin_color")val skinColor: String,
     @SerializedName("eye_color")val eyeColor: String,
     @SerializedName("url") val url: String,
-    @SerializedName("starships") val starshipsUrl: List<String>
+    @SerializedName("starships") val starshipsUrl: List<String>,
 )
