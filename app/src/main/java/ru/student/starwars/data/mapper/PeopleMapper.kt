@@ -33,7 +33,8 @@ class PeopleMapper @Inject constructor() {
             skinColor = humanDbModel.skinColor,
             eyeColor = humanDbModel.eyeColor,
             imageUrl = humanDbModel.imageUrl,
-            isFavorite = humanDbModel.isFavorite
+            isFavorite = humanDbModel.isFavorite,
+            starshipsCount = humanDbModel.starshipsCount
         )
     }
 

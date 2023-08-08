@@ -48,14 +48,33 @@ class FavoriteFragment : Fragment() {
         setupRecyclerView()
         binding.tvPeopleTitle.setOnClickListener {
             binding.recyclerView.adapter = favoritePeopleAdapter
-            collectPeople()
+            viewModel.getFavoritePeople()
         }
         binding.tvStarShipsTitle.setOnClickListener {
             binding.recyclerView.adapter = favoriteStarshipAdapter
-            collectStarships()
+            viewModel.getFavoriteStarships()
         }
-        collectPeople()
-
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.screenStateFlow.collect {
+                    when (it) {
+                        is MainScreenState.Initial -> {
+                        }
+                        is MainScreenState.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+                        is MainScreenState.People -> {
+                            binding.progressBar.visibility = View.GONE
+                            favoritePeopleAdapter.submitList(it.people)
+                        }
+                        is MainScreenState.Starships -> {
+                            binding.progressBar.visibility = View.GONE
+                            favoriteStarshipAdapter.submitList(it.starships)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -73,24 +92,6 @@ class FavoriteFragment : Fragment() {
         }
     }
 
-    private fun collectPeople() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.favoritePeople.collect {
-                    favoritePeopleAdapter.submitList(it)
-                }
-            }
-        }
-    }
-    private fun collectStarships() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.favoriteStarships.collect {
-                    favoriteStarshipAdapter.submitList(it)
-                }
-            }
-        }
-    }
     override fun onDestroy() {
         super.onDestroy()
         _binding = null

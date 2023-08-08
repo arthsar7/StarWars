@@ -67,10 +67,12 @@ class MainFragment : Fragment() {
         collectScreenFlow()
 
         binding.tvPeopleTitle.setOnClickListener {
+            binding.recyclerView.adapter = peopleAdapter
             mainViewModel.getPeople()
         }
 
         binding.tvStarShipsTitle.setOnClickListener {
+            binding.recyclerView.adapter = starshipAdapter
             mainViewModel.getStarships()
         }
     }
@@ -115,7 +117,6 @@ class MainFragment : Fragment() {
                 mainViewModel.screenStateFlow.collect {
                     when (it) {
                         is MainScreenState.People -> {
-                            binding.recyclerView.adapter = peopleAdapter
                             searchableList = it.people
                             peopleAdapter.submitList(it.people)
                             binding.progressBar.visibility = View.GONE
@@ -130,7 +131,6 @@ class MainFragment : Fragment() {
 
                         is MainScreenState.Starships -> {
                             binding.progressBar.visibility = View.GONE
-                            binding.recyclerView.adapter = starshipAdapter
                             searchableList = it.starships
                             starshipAdapter.submitList(it.starships)
                         }
