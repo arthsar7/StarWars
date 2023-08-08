@@ -7,14 +7,16 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 
 object ApiFactory {
+    private const val BASE_URL = "https://swapi.dev/api/"
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
-        }).build()
+        })
+        .build()
 
     private val retrofit = Retrofit
         .Builder()
-        .baseUrl("https://swapi.dev/api/")
+        .baseUrl(BASE_URL)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()

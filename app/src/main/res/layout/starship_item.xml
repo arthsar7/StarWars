@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     app:cardCornerRadius="8dp"
     app:cardUseCompatPadding="true"
     android:layout_marginHorizontal="8dp"
@@ -28,31 +27,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_launcher_background" />
+                android:src="@drawable/ic_starship" />
         </androidx.cardview.widget.CardView>
 
-        <TextView
-            android:id="@+id/titleTv"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.063"
-            app:layout_constraintStart_toEndOf="@+id/cardView1"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Name" />
-
-        <ImageView
-            android:id="@+id/sexIv"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/titleTv"
-            app:layout_constraintStart_toEndOf="@+id/titleTv"
-            app:layout_constraintTop_toTopOf="@+id/titleTv" />
 
         <ImageView
             android:id="@+id/imageView"
@@ -60,7 +37,7 @@
             android:layout_height="32dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="8dp"
-            android:src="@drawable/ic_starship"
+            android:src="@drawable/ic_passenger"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/favoriteBtn"
             app:layout_constraintTop_toTopOf="parent" />
@@ -75,15 +52,47 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:textColor="@color/black"
-            android:id="@+id/starshipCountTv"
+            android:id="@+id/passengersCountTv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="234"
+            android:textColor="@color/black"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="@+id/imageView"
             app:layout_constraintStart_toStartOf="@+id/imageView"
             app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+        <LinearLayout
+            android:layout_marginStart="8dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/imageView"
+            app:layout_constraintStart_toEndOf="@+id/cardView1"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/titleTv"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name" />
+
+            <TextView
+                android:textSize="12sp"
+                android:id="@+id/modelTitleTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Model" />
+
+            <TextView
+                android:textSize="12sp"
+                android:id="@+id/manufacturerTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manufacturer" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
