@@ -26,18 +26,15 @@ class FavoriteViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val favoriteCharacters = getFavoriteCharactersUseCase()
-        .filter { it.isNotEmpty() }
         .map { MainScreenState.Characters(it) as MainScreenState }
-        .onStart { emit(MainScreenState.Loading) }
 
     private val favoriteStarships = getFavoriteStarshipsUseCase()
-        .filter { it.isNotEmpty() }
         .map { MainScreenState.Starships(it) as MainScreenState }
-        .onStart { emit(MainScreenState.Loading) }
 
     private val nextDataEvents = MutableSharedFlow<MainScreenState>()
 
-    val screenStateFlow = favoriteCharacters.mergeWith(favoriteStarships)
+    val screenStateFlow = favoriteCharacters
+        .mergeWith(favoriteStarships)
         .mergeWith(nextDataEvents)
 
     fun getFavoriteStarships() {
@@ -47,7 +44,6 @@ class FavoriteViewModel @Inject constructor(
             }
         }
     }
-
     fun getFavoriteCharacters() {
         viewModelScope.launch {
             favoriteCharacters.collect {
@@ -64,4 +60,5 @@ class FavoriteViewModel @Inject constructor(
     fun changeStarshipFavorite(starship: Starship) {
         changeStarshipFavoriteUseCase(starship)
     }
+
 }
