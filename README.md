@@ -7,7 +7,6 @@ This is a simple mobile application that allows users to search for Star Wars re
 - Search for Star Wars characters and starships
 - Save resources as favorites
 - View a list of favorite resources
-- 
 ## Usage
 
 1. On the home page, enter a search query in the search bar to search for characters or starships.
