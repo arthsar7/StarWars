@@ -3,8 +3,8 @@ package ru.student.starwars.data.mapper
 import ru.student.starwars.data.models.CharacterDto
 import ru.student.starwars.data.models.CharacterResponseDto
 import ru.student.starwars.data.room.model.CharacterDbModel
-import ru.student.starwars.domain.entity.Gender
 import ru.student.starwars.domain.entity.Character
+import ru.student.starwars.domain.entity.Gender
 import javax.inject.Inject
 
 class CharactersMapper @Inject constructor() {

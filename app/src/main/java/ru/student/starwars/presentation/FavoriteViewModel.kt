@@ -1,12 +1,9 @@
 package ru.student.starwars.presentation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import ru.student.starwars.domain.entity.Character
 import ru.student.starwars.domain.entity.Starship
@@ -17,7 +14,6 @@ import ru.student.starwars.domain.usecases.GetFavoriteStarshipsUseCase
 import ru.student.starwars.extensions.mergeWith
 import javax.inject.Inject
 
-@Suppress("USELESS_CAST")
 class FavoriteViewModel @Inject constructor(
     getFavoriteCharactersUseCase: GetFavoriteCharactersUseCase,
     private val changeCharacterFavoriteUseCase: ChangeCharacterFavoriteUseCase,
@@ -26,10 +22,10 @@ class FavoriteViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val favoriteCharacters = getFavoriteCharactersUseCase()
-        .map { MainScreenState.Characters(it) as MainScreenState }
+        .map { MainScreenState.Characters(it) }
 
     private val favoriteStarships = getFavoriteStarshipsUseCase()
-        .map { MainScreenState.Starships(it) as MainScreenState }
+        .map { MainScreenState.Starships(it) }
 
     private val nextDataEvents = MutableSharedFlow<MainScreenState>()
 

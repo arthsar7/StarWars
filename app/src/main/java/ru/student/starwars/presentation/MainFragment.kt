@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
-import android.widget.RadioGroup.OnCheckedChangeListener
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -14,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import ru.student.starwars.R
 import ru.student.starwars.databinding.FragmentMainBinding
@@ -67,16 +66,14 @@ class MainFragment : Fragment() {
         setRecyclerView()
         setItemListener()
         collectScreenFlow()
-        binding.tvCharactersTitle.setOnCheckedChangeListener {
-                _, isChecked ->
+        binding.tvCharactersTitle.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 binding.recyclerView.adapter = characterAdapter
                 mainViewModel.getCharacters()
             }
         }
 
-        binding.tvStarShipsTitle.setOnCheckedChangeListener {
-                _, isChecked ->
+        binding.tvStarShipsTitle.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 binding.recyclerView.adapter = starshipAdapter
                 mainViewModel.getStarships()
@@ -121,12 +118,13 @@ class MainFragment : Fragment() {
     private fun collectScreenFlow() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                mainViewModel.screenStateFlow.collect {
+                mainViewModel.screenStateFlow.onCompletion {
+                    binding.progressBar.visibility = View.GONE
+                }.collect {
                     when (it) {
                         is MainScreenState.Characters -> {
                             searchableList = it.characters
                             characterAdapter.submitList(it.characters)
-                            binding.progressBar.visibility = View.GONE
                         }
 
                         is MainScreenState.Loading -> {
@@ -137,7 +135,6 @@ class MainFragment : Fragment() {
                         }
 
                         is MainScreenState.Starships -> {
-                            binding.progressBar.visibility = View.GONE
                             starshipAdapter.submitList(it.starships)
                             searchableList = it.starships
                         }
@@ -149,10 +146,11 @@ class MainFragment : Fragment() {
 
     private fun filteredList(newText: String) {
         if (newText.length < 2) {
-            characterAdapter.submitList(searchableList?.filterIsInstance<Character>())
+            return
         }
         val initList = mutableListOf<Searchable>()
         searchableList?.forEach {
+
             if (it.getSearchableText().lowercase().contains(newText.lowercase())) {
                 initList.add(it)
             }

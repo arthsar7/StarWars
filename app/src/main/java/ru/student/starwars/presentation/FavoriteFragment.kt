@@ -1,7 +1,6 @@
 package ru.student.starwars.presentation
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -77,7 +76,6 @@ class FavoriteFragment : Fragment() {
                     when (it) {
 
                         is MainScreenState.Initial -> {
-                            Log.d("FavoriteFragment", "Initial")
                         }
 
                         is MainScreenState.Loading -> {
@@ -85,13 +83,11 @@ class FavoriteFragment : Fragment() {
                         }
 
                         is MainScreenState.Characters -> {
-                            Log.d("FavoriteFragment", it.toString())
                             binding.progressBar.visibility = View.GONE
                             favoriteCharacterAdapter.submitList(it.characters)
                         }
 
                         is MainScreenState.Starships -> {
-                            Log.d("FavoriteFragment", it.toString())
                             binding.progressBar.visibility = View.GONE
                             favoriteStarshipAdapter.submitList(it.starships)
                         }

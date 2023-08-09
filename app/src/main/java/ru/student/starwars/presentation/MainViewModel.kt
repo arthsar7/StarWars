@@ -16,7 +16,6 @@ import ru.student.starwars.domain.usecases.GetStarshipsUseCase
 import ru.student.starwars.extensions.mergeWith
 import javax.inject.Inject
 
-@Suppress("USELESS_CAST")
 class MainViewModel @Inject constructor(
     getCharactersUseCase: GetCharactersUseCase,
     private val changeCharacterFavoriteUseCase: ChangeCharacterFavoriteUseCase,
@@ -26,22 +25,25 @@ class MainViewModel @Inject constructor(
 
     private val charactersFlow = getCharactersUseCase()
         .filter { it.isNotEmpty() }
-        .map { MainScreenState.Characters(it) as MainScreenState }
-        .onStart { emit(MainScreenState.Loading) }
+        .map { MainScreenState.Characters(it)}
+
+
 
     private val starshipsFlow = getStarshipsUseCase()
         .filter { it.isNotEmpty() }
-        .map { MainScreenState.Starships(it) as MainScreenState }
-        .onStart { emit(MainScreenState.Loading)  }
+        .map { MainScreenState.Starships(it)}
 
     private val nextDataEvents = MutableSharedFlow<MainScreenState>()
 
-    val screenStateFlow = charactersFlow.mergeWith(starshipsFlow).mergeWith(nextDataEvents)
+    val screenStateFlow = charactersFlow
+        .mergeWith(starshipsFlow)
+        .mergeWith(nextDataEvents)
+        .onStart { emit(MainScreenState.Loading) }
+
 
     fun getStarships() {
         viewModelScope.launch {
             starshipsFlow.collect {
-                nextDataEvents.emit(MainScreenState.Starships(listOf()))
                 nextDataEvents.emit(it)
             }
         }
@@ -50,7 +52,6 @@ class MainViewModel @Inject constructor(
     fun getCharacters() {
         viewModelScope.launch {
             charactersFlow.collect {
-                nextDataEvents.emit(MainScreenState.Characters(listOf()))
                 nextDataEvents.emit(it)
             }
         }

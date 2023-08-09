@@ -7,8 +7,8 @@ import androidx.recyclerview.widget.ListAdapter
 import com.bumptech.glide.Glide
 import ru.student.starwars.R
 import ru.student.starwars.databinding.SearchItemBinding
-import ru.student.starwars.domain.entity.Gender
 import ru.student.starwars.domain.entity.Character
+import ru.student.starwars.domain.entity.Gender
 
 class CharacterAdapter: ListAdapter<Character, CharacterViewHolder>(CharacterItemDiffCallback()) {
     var onItemClickListener: ((Character) -> Unit)? = null
